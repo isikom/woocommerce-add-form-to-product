@@ -1,0 +1,32 @@
+#woocommerce-product-data ul.product_data_tabs li a.added_af2p{
+   background: url(../images/form-to-product-icon.png) no-repeat 5px 5px transparent;
+   line-height:1em;
+   padding:5px 5px 5px 28px;
+   text-shadow:0 1px 1px #FFFFFF;
+}
+.af2p_add_form_field br {
+	clear: both;
+}
+.af2p_add_form_field .button {
+	margin-top: 4px;
+}
+#forms_selected th .dashicons {
+	font-size: 1.3em;
+	color: #888;
+}
+#forms_selected th:nth-of-type(1) {
+	width: 10%;
+	text-align: center;
+}
+#forms_selected td:nth-of-type(1) {
+	text-align: center;
+}
+#forms_selected th:nth-of-type(2) {
+	width: 90%;
+}
+#forms_selected .remove {
+	cursor: pointer;
+}
+#forms_selected .remove:before {
+	content: "\f158";
+}
