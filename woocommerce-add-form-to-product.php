@@ -35,12 +35,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 			        // backend stuff
 			        add_action('woocommerce_product_write_panel_tabs', array(&$this, 'product_write_panel_tab'));
 			        add_action('woocommerce_product_write_panels', array(&$this, 'product_write_panel'));
-			        //add_action('woocommerce_process_product_meta', array($this, 'product_save_data'), 10, 2);
-			        add_action( 'admin_enqueue_scripts', array(&$this, 'wooaf2p_add_admin_scripts'));
+			        add_action('woocommerce_process_product_meta', array(&$this, 'product_save_data'), 10, 2);
+			        add_action('admin_enqueue_scripts', array(&$this, 'wooaf2p_add_admin_scripts'));
 				}else{
 			        // frontend stuff
 				}
-				add_shortcode("text_submition", array(&$this, 'textSubmitionShortcode'));					
+				add_shortcode("text_submition", array(&$this, 'textSubmitionShortcode'));
+				add_filter('woocommerce_email_classes', array(&$this, 'request_text_email'));
+				add_filter('woocommerce_resend_order_emails_available', array(&$this, 'request_text_email_available'), 10, 1);
 		    }
 			
 			/**
@@ -114,6 +116,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 					//print_r($forms);
 					$af2p_enable = get_post_meta($post->ID, 'af2p_enamble', true) ? get_post_meta($post->ID, 'af2p_enamble', true) : false;
 					$af2p_forms = get_post_meta($post->ID, 'af2p_forms', true) ? get_post_meta($post->ID, 'af2p_forms', true) : array();
+					$af2p_forms_selected = array();
 					?>
 					<div id="af2p_tab" class="panel woocommerce_options_panel">
 						<p class="form-field af2p_enamble_field ">
@@ -127,12 +130,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 								<?php
 								if (!empty($forms) and is_array($forms)){
 									foreach ($forms as $key => $form){
-										echo '<option value="'.$form->name.'">'.$form->title.'</option>';
+										if (in_array($form->name, $af2p_forms)){
+											$af2p_forms_selected[$form->name] = $form->title;
+										   	//echo "Match found";
+										}else{
+											echo '<option value="'.$form->name.'">'.$form->title.'</option>';
+										}
 									}
 								}
 								?>
 							</select>
-							<br/>
+							<br>
 							<button id="af2p_add_form_button" class="button"><?php _e('add', 'woo_af2p'); ?></button>
 						</p>
 						<table id="forms_selected" class="wp-list-table widefat forms">
@@ -144,9 +152,16 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 							</tr>
 							</thead>
 							<tbody>
-							<tr class="solo">
+							<tr class="solo" <?php if(!empty($af2p_forms_selected)){ echo 'style="display:none"'; }?>>
 								<td colspan="2"><?php _e('no form selected', 'woo_af2p'); ?></td>
 							</tr>
+							<?php
+							if(!empty($af2p_forms_selected)){
+								 foreach($af2p_forms_selected as $name => $title){
+								 	echo '<tr><td><a class="remove dashicons" data-item="'.$name.'"></a><input type="hidden" name="af2p_forms[]" value="'.$name.'"></td><td>'.$title.'</td></tr>';
+								 }
+							}
+							?>
 							</tbody>							
 						</table>
 					</div>
@@ -163,6 +178,20 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 			}
 
 			/**
+			 * updating the database post.
+			 */
+			public function product_save_data($post_id, $post) {
+				$af2p_enamble = $_POST['af2p_enamble'];
+				if (empty($af2p_enamble)) {
+					delete_post_meta($post_id, 'af2p_enamble');
+				}else{
+					update_post_meta($post_id, 'af2p_enamble', true);
+				}
+				$af2p_forms = !empty($_POST['af2p_forms']) && is_array($_POST['af2p_forms']) ? $_POST['af2p_forms'] : array();
+				update_post_meta($post_id, 'af2p_forms', $af2p_forms);
+			}
+
+			/**
 			 * Enqueue plugin style-file
 			 */
 			function wooaf2p_add_admin_scripts() {
@@ -173,6 +202,25 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 				wp_enqueue_script( 'wooaf2p-scripts' );
 			}
 
+			/**
+			 *  Add a custom email to the list of emails WooCommerce should load
+			 *
+			 * @since 0.1
+			 * @param array $email_classes available email classes
+			 * @return array filtered available email classes
+			 */
+			function request_text_email( $email_classes ) {
+			    // include our custom email class
+			    require( 'includes/class-wc-email-customer-request-texts.php' );
+			    // add the email class to the list of email classes that WooCommerce loads
+			    $email_classes['WC_Email_Customer_Request_Texts'] = new WC_Email_Customer_Request_Texts();
+			    return $email_classes;
+			}
+
+			function request_text_email_available($emails) {
+				array_push($emails, 'wc_request_texts');
+				return $emails;
+			}
 
 		}// end class
 		$woocommerce_af2p = new WooCommerce_AddFormToProduct();

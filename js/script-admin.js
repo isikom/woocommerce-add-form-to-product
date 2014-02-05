@@ -9,7 +9,7 @@ jQuery(document).ready(function($){
 			$( "#af2p_add_form option:selected" ).remove();
 			
 			$('#forms_selected .solo').hide();
-			$('<tr><td><a class="remove dashicons" data-item="'+name+'"></a></td><td>'+title+'</td></tr>').appendTo($('#forms_selected tbody'));			
+			$('<tr><td><a class="remove dashicons" data-item="'+name+'"></a><input type="hidden" name="af2p_forms[]" value="'+name+'"></td><td>'+title+'</td></tr>').appendTo($('#forms_selected tbody'));			
 		}
 		return false;
 	});
