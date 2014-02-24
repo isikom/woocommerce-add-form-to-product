@@ -31,13 +31,13 @@ class WC_Email_Customer_Request_Texts extends WC_Email {
 	    $this->subject = __( 'Request Texts', 'woo_af2p' );;
 	 
 	    // these define the locations of the templates that this email should use, we'll just use the new order template since this email is similar
-		$this->template_html 	= 'emails/customer-processing-order.php';
-		$this->template_plain 	= 'emails/plain/customer-processing-order.php';
+		$this->template_html 	= 'emails/customer-request-texts.php';
+		$this->template_plain 	= 'emails/plain/customer-request-texts.php';
 	 
 	    // Trigger on new paid orders
 	    add_action( 'woocommerce_order_status_pending_to_processing_notification', array( $this, 'trigger' ) );
 	    add_action( 'woocommerce_order_status_failed_to_processing_notification',  array( $this, 'trigger' ) );
-	 
+	 	add_action( 'woocommerce_order_status_on-hold_to_processing_notification', array( $this, 'trigger' ) );
 	    // Call parent constructor to load any other defaults not explicity defined here
 	    parent::__construct();
 			 
@@ -58,7 +58,8 @@ class WC_Email_Customer_Request_Texts extends WC_Email {
 	    // setup order object
 	    $this->object = new WC_Order( $order_id );
 		$this->recipient	= $this->object->billing_email;
-	 
+
+error_log('mail trigger');	 
 	    // bail if shipping method is not expedited
 	    //if ( ! in_array( $this->object->get_shipping_method(), array( 'Three Day Shipping', 'Next Day Shipping' ) ) )
 	    //    return;
