@@ -32,3 +32,49 @@ jQuery(document).ready(function($){
 	});
 
 });
+
+/*
+ * Attaches the image uploader to the input field
+ */
+jQuery(document).ready(function($){
+ 
+    // Instantiates the variable that holds the media library frame.
+    var preview_uploader;
+		
+    // Runs when the image button is clicked.
+    //$('#meta-preview-button').click(function(e){
+ 	$('#meta-preview-button').click(function(e){			
+        // Prevents the default action from occuring.
+        e.preventDefault();
+ 
+        // If the frame already exists, re-open it.
+        if ( preview_uploader ) {
+			preview_uploader.open();
+            return;
+        }
+ 
+        // Sets up the media library frame
+        //preview_uploader = wp.media.frames.preview_uploader = wp.media({
+        preview_uploader = wp.media.frames.file_frame = wp.media({
+            //title: meta_preview.title,
+            //button: { text:  meta_preview.button },
+            title: 'Choose a document',
+            button: {text: 'set a document as preview'},
+            multiple: false
+            //library: { type: 'image' }
+        });
+ 
+ 		console.log('i am here');
+ 		console.log(preview_uploader);
+ 		
+        // Runs when an image is selected.
+        preview_uploader.on('select', function(){
+ 			console.log('fire event select');
+            // Grabs the attachment selection and creates a JSON representation of the model.
+            attachment = preview_uploader.state().get('selection').first().toJSON();
+            $('#meta-preview').val(attachment.url);
+        });
+ 
+        preview_uploader.open();
+    });
+});

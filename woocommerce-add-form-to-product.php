@@ -18,7 +18,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 	if (!class_exists('WooCommerce_AddFormToProduct')) {
 		class WooCommerce_AddFormToProduct {
 			var $statuses = array('waiting-text', 'waiting-approval-preview');
-			
+			var $form_id = 0;
+						
 			/**
 			 * Gets things started by adding an action to initialize this plugin once
 			 * WooCommerce is known to be active and initialized
@@ -38,9 +39,16 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 			        add_action('woocommerce_process_product_meta', array($this, 'product_save_data'), 10, 2);
 			        add_action('admin_enqueue_scripts', array($this, 'wooaf2p_add_admin_scripts'));
 					add_action('add_meta_boxes', array($this, 'wooaf2p_meta_boxes'));
+					add_action('save_post', array($this, 'wooaf2p_meta_boxes_save'));
+
+					add_action('wp_ajax_send_text', array($this, 'send_text'));
+					add_action('wp_ajax_nopriv_send_text', array($this, 'send_text'));					
 				}else{
 			        // frontend stuff
+			        add_filter('wpcf7_form_elements', array($this, 'wpcf7_set_form_hidden'), 10, 1 );
+					add_filter('wpcf7_form_id_attr', array($this, 'wpcf7_set_form_id'), 10, 1 );
 			        add_action("wpcf7_before_send_mail", array($this, 'wpcf7_save_form_data'));
+					add_filter('woocommerce_my_account_my_orders_actions', array($this, 'add_orders_actions'), 10, 2);
 				}
 				
 				
@@ -57,6 +65,26 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 				add_filter('woocommerce_email_classes', array($this, 'request_text_email'));
 				add_filter('woocommerce_resend_order_emails_available', array($this, 'request_text_email_available'), 10, 1);
 		    }
+						
+			function wpcf7_set_form_id($form_id) {
+				if ($this->form_id){
+					error_log($this->form_id);
+					return $this->form_id;
+				}else{
+					error_log($form_id);
+					return $form_id;	
+				}
+				
+			}
+			
+			function wpcf7_set_form_hidden($form){
+				error_log("wpcf7_set_form_hidden");
+				error_log($form);
+				if ($this->form_id){
+					$form .= '<input type="hidden" name="_product_key" value="'.$this->form_id.'">';
+				}
+				return $form;
+			}
 			
 			/**
 			 * run on plugin activation 
@@ -67,7 +95,22 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 				foreach($statuses as $status) {
 					wp_insert_term($status, 'shop_order_status');
 				}
-				*/				
+				*/
+				
+				if (get_option('woocommerce_texts_page_id') == false){
+					// Create post object
+					$texts_post = array(
+						'post_title'    => __('Texts submission', 'woo_af2p'),
+						'post_content'  => '[text_submition]',
+						'post_status'   => 'publish',
+						'post_author'   => 1,
+						'post_type'		=> 'page'
+					);
+										
+					$post_id = wp_insert_post( $texts_post, $wp_error );
+					
+					update_option('woocommerce_texts_page_id', $post_id);
+				}
 			}
 
 			/**
@@ -88,10 +131,21 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 				*/
 			}
 
+			function add_orders_actions($actions, $order){
+				if (get_post_meta($order->id, 'forms_required', true) === '1'){
+					$actions['texts'] = array(
+						'url'  => add_query_arg( 'order', $order->id, get_permalink( woocommerce_get_page_id( 'texts' ) ) ),
+						'name' => __( 'Texts', 'woo_af2p' )
+					);
+				}
+				return $actions;	
+			}
+			
 			/**
 			 * shortcode that manage the text submition page 
 			 */
 			public function textSubmitionShortcode($atts, $content = null) {
+				global $woocommerce, $emails;
 				$order_id = intval($_REQUEST['order']) > 0 ? intval($_REQUEST['order']) : '';
 				
 				// exist order number?
@@ -120,7 +174,29 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 					echo '</script>';
 					exit;					
 				}
-				
+				echo <<<EOF
+<style>
+#manage_forms_container .wp-post-image {
+	float: right;
+}
+#forms_container {
+	width: 50%;
+	float: left;
+}
+#texts_container {
+	width: 50%;
+	float: right;
+}
+#manage_forms_container .wrapper {
+	padding: 0 10px;
+}
+</style>
+<script>    
+	function redirect() { 
+		location.reload();
+	}
+</script>
+EOF;
 				$forms_status = get_post_meta($order_id, 'forms_status', true);
 				$forms_status_description = '';
 				switch ($forms_status) {
@@ -136,9 +212,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 					case 'preview-approved':
 						$forms_status_description = __('Preview approved', 'woo_af2p');
 						break;
-					case 'awaiting-corrections':
-						$forms_status_description = __('Awaiting corrections', 'woo_af2p');
-						break;
 				}					
 				echo '<h2>' . __('Order', 'woocommerce') . ' ' . $order_id . '</h2>';
 				echo '<p>' . __('Status', 'woocommerce') . ': ' . $order->status . '</p>';
@@ -148,22 +221,109 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 				}else{?>
 					<?php
 					$forms = get_post_meta($order_id, 'forms', true);
+					
+					//echo "<pre>";
+					//print_r($emails);
+					//echo "</pre>";
+
+					//$mailer = $woocommerce->mailer();  
+					
+					//$mailer->emails['WC_Email_Customer_Request_Texts']->trigger($order_id );
+					//echo "<pre>";
+					//print_r($mailer->emails['WC_Email_Customer_Request_Texts']);
+					//echo "</pre>";
+/*
+					echo "<pre>";
+					print_r($emails['WC_Email_Customer_Request_Texts']);
+					echo "</pre>";
+*/
+
+					echo '<div id="manage_forms_container">';
+
+					echo '<div id="forms_container">';
+					
+					if ($forms_status == 'awaiting-submission'){
+						echo '<div class="wrapper">';
+						foreach ($forms as $key => $form){
+							echo "<hr>";
+							echo get_the_post_thumbnail( $form['product_id'], 'shop_thumbnail');
+							echo "<h3>" . $form['product_title'] . "</h3>";
+							foreach ( $form['forms'] as $product_form){
+								$form_data = get_page_by_path($product_form, OBJECT, 'wpcf7_contact_form');
+								echo "<h5>".$form_data->post_title."</h5>";
+								$cf7_shortcode = '[contact-form-7 title="'.$form_data->post_title.'"]';
+								$this->form_id = $key;
+								echo do_shortcode($cf7_shortcode);
+								$this->form_id = 0;
+							}
+						}
+						echo "<hr>";
+						echo '</div><!-- .wrapper -->';
+					}
+					echo '</div><!--forms_container-->';
+
+					echo '<div id="texts_container">';
+					echo '<div class="wrapper">';
+					echo "<h3>" . __('Submitted Texts', 'woo_af2p') . "</h3>";
+					$could_submit = true;
 					foreach ($forms as $key => $form){
 						echo "<hr>";
 						echo "<h3>" . $form['product_title'] . "</h3>";
-						foreach ( $form['forms'] as $product_form){
-							$form_data = get_page_by_path($product_form, OBJECT, 'wpcf7_contact_form');
-							echo "<h5>".$form_data->post_title."</h5>";
-							//echo '<pre>';
-							//print_r($form_data);
-							//echo '</pre>';
-							$cf7_shortcode = '[contact-form-7 id="'.$form_data->ID.'" title="'.$form_data->post_title.'"]';
-							echo do_shortcode($cf7_shortcode);
-	
-																			
+						if (!$form['submitted'] ){
+							$could_submit = false;
+						}else{
+							if (count($form['submitted']) !== count($form['forms']) ){
+								$could_submit = false;
+							}
+							foreach ( $form['submitted'] as $product_form => $data){
+								$form_data = get_page_by_path($product_form, OBJECT, 'wpcf7_contact_form');
+								echo "<h5>".$form_data->post_title."</h5>";
+								foreach($data as $data_key => $data_value){
+									echo "<p>";
+									echo "<strong>$data_key</strong><br>$data_value";
+									echo "</p>";
+								}
+							}
 						}
 					}
-					echo "<hr>";
+					if ($forms_status == 'awaiting-submission'){
+						if ($could_submit === true){
+							$nonce = wp_create_nonce('send_text_submit');
+							?>
+							<button class="button save_order button-primary tips" name="send" id="sendtext"><?php _e('Send texts','woo_af2p'); ?></button>
+							<script type="text/javascript" >
+							jQuery(document).ready(function($) {
+								if(typeof ajaxurl === "undefined"){
+									var ajaxurl ='<?php echo admin_url('admin-ajax.php'); ?>';
+								}
+								$('button#sendtext').on('click', function(){
+									var data = {
+										action: 'send_text',
+										_nonce: '<?php echo $nonce; ?>',
+										order: '<?php echo $order_id ?>'
+										
+									};
+									// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
+									$.post(ajaxurl, data, function(response) {
+										if (response.success){
+											//alert(response.success);
+											location.reload(true);
+										}else{
+											alert("error");
+										}
+									});
+								});
+							});
+							</script>
+							<?php
+						}else{
+							echo "<p>" . __("You must complete all forms requested. After that you'll can send texts and awaiting a preview", "woo_af2p") . "</p>";
+						}
+					}
+					echo '</div><!-- .wrapper -->';
+					echo '</div><!--texts_container-->';
+
+					echo '</div><!--manage_forms_container-->';
 					//echo '<pre>';
 					//print_r($forms);
 					//echo '</pre>';
@@ -175,6 +335,44 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 					//echo '</pre>';
 				}
 			}
+
+			function send_text() {
+				global $wpdb, $woocommerce; // this is how you get access to the database
+				$nonce = $_POST['_nonce'];
+				$order_id = $_POST['order'];
+				$user_id = get_current_user_id();
+				
+				header('Content-Type: application/json');
+				if ( ! wp_verify_nonce( $nonce, 'send_text_submit' ) ) {
+				    // This nonce is not valid.
+					wp_send_json_error(); // {"success":false}
+				    die();
+				} 
+				if ( !$order_id ) {
+				    // Order id is empty.
+					wp_send_json_error(); // {"success":false}
+				    die();
+				} 
+
+				$order = new WC_Order();
+				$order->get_order($order_id);
+				
+				if (!$order->id == $order_id or !$order->customer_user == $user_id ){
+					wp_send_json_error(); // {"success":false}
+				    die();					
+				}
+				
+				//carico il mailer. Questo fa si che vengano chiamate le classi delle email e relativi filtri e azioni
+				$mailer = $woocommerce->mailer();
+				
+				update_post_meta($order->id, 'forms_status', 'awaiting-preview');
+				//la mail viene inviata grazie all'aggancio a questa azione  
+				do_action( 'woocommerce_af2p_status_awaiting-submission_to_awaiting-preview', $order_id);
+				
+				echo json_encode(array('success' => true, 'status' => 'ok', 'order_id' => $order_id, 'user_id' => $user_id, 'oerder' => $order->id, 'customer user' => $order->customer_user));
+				die(); // this is required to return a proper result
+			}
+
 
 			/**
 			 * creates the tab for the administrator, where administered product sample.
@@ -273,6 +471,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 			 * Enqueue plugin style-file
 			 */
 			function wooaf2p_add_admin_scripts() {
+				//wp_enqueue_media();
 				// Respects SSL, style-admin.css is relative to the current file
 				wp_register_style( 'wooaf2p-styles', plugins_url('css/style-admin.css', __FILE__) );
 				wp_register_script( 'wooaf2p-scripts', plugins_url('js/script-admin.js', __FILE__), array('jquery') );
@@ -290,8 +489,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 			function request_text_email( $email_classes ) {
 			    // include our custom email class
 			    require( 'includes/class-wc-email-customer-request-texts.php' );
+			    require( 'includes/class-wc-email-text-submitted.php' );
 			    // add the email class to the list of email classes that WooCommerce loads
 			    $email_classes['WC_Email_Customer_Request_Texts'] = new WC_Email_Customer_Request_Texts();
+			    $email_classes['WC_Email_Text_Submitted'] = new WC_Email_Text_Submitted();
 			    return $email_classes;
 			}
 
@@ -348,21 +549,22 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 			}
 
 			function wooaf2p_meta_boxes(){
-				add_meta_box( 'woocommerce-added-forms', __( 'Requested Text', 'woo_af2p' ), array($this, 'woocommerce_order_texts_forms_for_items_meta_box'), 'shop_order', 'normal', 'high');
+				add_meta_box( 'woocommerce-added-forms', __( 'Requested Text', 'woo_af2p' ), array($this, 'wooaf2p_meta_boxes_callback'), 'shop_order', 'normal', 'high');
 			}
 			
-			function woocommerce_order_texts_forms_for_items_meta_box($post){
+			function wooaf2p_meta_boxes_callback($post){
 				global $wpdb, $thepostid, $theorder, $woocommerce;
-			
-				if ( ! is_object( $theorder ) )
+
+				if ( !is_object( $theorder ) )
 					$theorder = new WC_Order( $thepostid );
-			
+					
 				$order = $theorder;
 			
 				$data = get_post_meta( $post->ID );
 				?>
 				<div class="woocommerce_order_texts_forms_for_items_wrapper">
 				<?php
+					wp_nonce_field('af2p_upload','_af2p_nonce');
 					$forms_required = get_post_meta($post->ID, 'forms_required', true) ? get_post_meta($post->ID, 'forms_required', true) : false;
 					  if ($forms_required !== '1') { ?>
 					<p><?php _e( 'No text required for this order', 'woo_af2p' ); ?></p>
@@ -382,28 +584,118 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 							case 'preview-approved':
 								$forms_status_description = __('Preview approved', 'woo_af2p');
 								break;
-							case 'awaiting-corrections':
-								$forms_status_description = __('Awaiting corrections', 'woo_af2p');
-								break;
 						}					
 					?>
 					<p><?php _e( 'Text status', 'woo_af2p' ); ?>: <strong class="forms-status <?php echo $forms_status; ?>"><?php echo $forms_status_description ?></strong></p>
+
+					<?php
+					if ($forms_status != 'awaiting-submission'){
+						$forms = get_post_meta($post->ID, 'forms', true);
+		
+						foreach ($forms as $key => $form){
+							echo "<hr>";
+							echo "<h3>" . $form['product_title'] . "</h3>";
+							foreach ( $form['submitted'] as $product_form => $data){
+								$form_data = get_page_by_path($product_form, OBJECT, 'wpcf7_contact_form');
+								echo "<h5>".$form_data->post_title."</h5>";
+								foreach($data as $data_key => $data_value){
+									echo "<p>";
+									echo "<strong>$data_key</strong><br>$data_value";
+									echo "</p>";
+								}
+							}
+						}
+					}
+						
+					if ($forms_status == 'awaiting-preview' || $forms_status == 'awaiting-approval'){
+						$btn_value = __( 'Send Preview', 'woo_af2p' );
+						if ($forms_status == 'awaiting-approval')
+							$btn_value = __( 'Send Again', 'woo_af2p' );	
+					?>
+					<div class="upload_preview">
+					    <label for="meta-preview" class="prfx-row-title"><?php _e( 'Preview', 'woo_af2p' )?></label>
+					    <?php if ( isset ( $data['af2p-preview-url'] ) ){ ?>
+					    <a href="<?php echo $data['af2p-preview-url'][0]; ?>" target="_blank"><img class="document-preview" src="/wp-includes/images/crystal/document.png"></a>	
+					    <?php }?>
+					    <input type="hidden" name="meta-preview" id="meta-preview" value="<?php if ( isset ( $data['af2p-preview-url'] ) ) echo $data['af2p-preview-url'][0]; ?>" />
+					    <input type="button" id="meta-preview-button" class="button" rel="442"value="<?php _e( 'Upload the Preview document', 'woo_af2p' )?>" />
+					    
+					    <input type="submit" class="button send_preview button-primary" name="send_preview" value="<?php echo $btn_value ?>">
+					</div>
+					<?php } else if ($forms_status == 'preview-approved'){
+						echo $data['af2p-preview-url'][0];
+					}else{
+						// unfind status
+					}?>
+					<div class="clear"></div>
+
 				<?php } ?>
 				</div>
-			
-				<div class="clear"></div>
 				<?php
+			}
+
+			function wooaf2p_meta_boxes_save( $post_id ) {
+
+			    // Checks save status
+			    $is_autosave = wp_is_post_autosave( $post_id );
+			    $is_revision = wp_is_post_revision( $post_id );
+			    $is_valid_nonce = ( isset( $_POST[ '_af2p_nonce' ] ) && wp_verify_nonce( $_POST[ '_af2p_nonce' ], 'af2p_upload') ) ? 'true' : 'false';
+			 
+			    // Exits script depending on save status
+			    if ( $is_autosave || $is_revision || !$is_valid_nonce ) {
+			        return;
+			    }
+			 
+			    // Checks for input and sanitizes/saves if needed
+			    //if( isset( $_POST[ 'meta-text' ] ) ) {
+			    //    update_post_meta( $post_id, 'meta-text', sanitize_text_field( $_POST[ 'meta-text' ] ) );
+			    //}
+			    
+			    // Checks for input and saves if needed
+				if( isset( $_POST[ 'meta-preview' ] ) ) {
+				    update_post_meta( $post_id, 'af2p-preview-url', $_POST[ 'meta-preview' ] );
+					//return;
+				}
+				if( isset( $_POST[ 'send_preview' ] ) ) {
+				    update_post_meta( $post_id, 'forms_status', 'awaiting-approval' );
+				    do_action( 'woocommerce_af2p_status_awaiting-preview_to_awaiting-approval', $post_id);
+					//return;
+				}
+
 			}
 
 			function wpcf7_save_form_data(&$wpcf7_data)
 			{
+				global $wp_query;
+				$order_id = intval($_REQUEST['order']) > 0 ? intval($_REQUEST['order']) : '';
 				error_log('------------------------ CI PASSO --------------------------');
 			    // Everything you should need is in this variable
 			    //var_dump($wpcf7_data);
-				error_log('------------------------ CI PASSO --------------------------');
+			    $log = var_export($wpcf7_data, true);
+			    error_log($log);
+				error_log('------------------------------------------------------------');
+				error_log(serialize($wpcf7_data->posted_data));
+				$product_key = $wpcf7_data->posted_data['_product_key'];
+				error_log($wpcf7_data->name);
+				$forms = get_post_meta($order_id, 'forms', true);
+				if (!$forms[$product_key]['submitted']){
+					$forms[$product_key]['submitted'] = array();
+				}
+				foreach ( $wpcf7_data->posted_data as $key => $value){
+					if ($key[0] !== '_'){
+						$submitted[$key] = $value;
+					}
+				}
+				$forms[$product_key]['submitted'][$wpcf7_data->name] = $submitted;
+				update_post_meta($order_id, 'forms', $forms);
+				error_log('------------------------ PASSATO ---------------------------');
 			
 			    // I can skip sending the mail if I want to...
 			    $wpcf7_data->skip_mail = true;
+				
+				//$url = add_query_arg( 'order', $order->id, get_permalink( woocommerce_get_page_id( 'texts' ) ) );
+				//wp_redirect($url);
+				//exit;
 			}
 
 		}// end class
@@ -414,5 +706,4 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 		register_uninstall_hook( __FILE__, array( 'WooCommerce_AddFormToProduct', 'uninstall' ) );
 	}
 }
-
 ?>

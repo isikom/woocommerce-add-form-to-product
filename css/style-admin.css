@@ -30,3 +30,8 @@
 #forms_selected .remove:before {
 	content: "\f158";
 }
+
+img.document-preview {
+	height: 2em;
+	vertical-align: middle;
+}
