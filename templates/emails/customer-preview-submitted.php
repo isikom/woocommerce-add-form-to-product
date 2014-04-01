@@ -3,25 +3,17 @@
  * Customer request texts email
  *
  * @author		Isikom
- * @package 	WooCommerce/Templates/Emails/Plain
- * @version     2.0.0
+ * @package 	WooCommerce/Templates/Emails
+ * @version     1.6.4
  */
+
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
-
 $order_id = $order->get_order_number();
+?>
 
-echo $email_heading . "\n\n";
+<?php do_action('woocommerce_email_header', $email_heading); ?>
 
-echo __( "Your order to being processed needs your text. Follow the link and submit your texts.", 'woo_af2p' ) . "\n\n";
+<h2><?php echo __( 'Order:', 'woocommerce' ) . ' ' . $order_id ?></h2>
+<p><?php echo __( "A preview of your items was uploaded in your personal area", 'woo_af2p' ); ?></p>
 
-echo "****************************************************\n\n";
-
-echo sprintf( __( 'Order number: %s', 'woocommerce'), $order_id ) . "\n";
-echo sprintf( __( 'Order date: %s', 'woocommerce'), date_i18n( woocommerce_date_format(), strtotime( $order->order_date ) ) ) . "\n\n";
-
-echo __('Forms Page','woo_af2p') . "\n";
-echo get_site_url() . '/testi/?order=' . $order->id . "\n\n";
-
-echo "****************************************************\n\n";
-
-echo apply_filters( 'woocommerce_email_footer_text', get_option( 'woocommerce_email_footer_text' ) );
+<?php do_action('woocommerce_email_footer'); ?>

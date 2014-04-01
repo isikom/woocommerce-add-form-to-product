@@ -35,3 +35,28 @@ img.document-preview {
 	height: 2em;
 	vertical-align: middle;
 }
+
+.action-icon:before {
+	display: inline-block;
+	font: 400 20px/1 dashicons;
+	speak: none;
+	vertical-align: middle;
+	margin-left: 0;
+	margin-right: 6px;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	cursor: pointer;
+}
+
+.action-icon {
+	cursor: pointer;
+}
+
+#collapse-texts, #texts-container, #collapse-reports,#reports-container {
+	display:none;
+}
+
+#title_upload_preview {
+	display: inline-block;
+	cursor:default;
+}

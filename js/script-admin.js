@@ -30,7 +30,31 @@ jQuery(document).ready(function($){
 		}
 		return false;
 	});
+	
+	$("#expand-texts").on('click', function(){
+		$('#texts-container').slideDown();
+		$('#expand-texts').hide();
+		$('#collapse-texts').show();
+ 	});
 
+	$("#collapse-texts").on('click', function(){
+		$('#texts-container').slideUp();
+		$('#collapse-texts').hide();
+		$('#expand-texts').show();
+ 	});
+ 	
+	$("#expand-reports").on('click', function(){
+		$('#reports-container').slideDown();
+		$('#expand-reports').hide();
+		$('#collapse-reports').show();
+ 	});
+
+	$("#collapse-reports").on('click', function(){
+		$('#reports-container').slideUp();
+		$('#collapse-reports').hide();
+		$('#expand-reports').show();
+ 	});
+ 	
 });
 
 /*

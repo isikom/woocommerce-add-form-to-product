@@ -46,5 +46,9 @@ The manual installation method involves downloading our plugin and uploading it 
 
 == Changelog ==
 
+= 0.5 - 01/04/2014 =
+* added some functions
+* first beta released
+
 = 0.4 - 24/02/2014 =
 * Initial Alpha Release.

@@ -5,7 +5,7 @@
  * Description: Add a custom text form to an item. This is required when item in your shop need to get a custom text, for example wedding invitations, plates, serigraphs for pens and more
  * Author: Michele Menciassi
  * Author URI: https://plus.google.com/+MicheleMenciassi
- * Version: 0.0.2
+ * Version: 0.5.0
  * License: GPLv2 or later
  */
  
@@ -40,15 +40,20 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 			        add_action('admin_enqueue_scripts', array($this, 'wooaf2p_add_admin_scripts'));
 					add_action('add_meta_boxes', array($this, 'wooaf2p_meta_boxes'));
 					add_action('save_post', array($this, 'wooaf2p_meta_boxes_save'));
-
+					//AJAX FUNCTIONS
 					add_action('wp_ajax_send_text', array($this, 'send_text'));
 					add_action('wp_ajax_nopriv_send_text', array($this, 'send_text'));					
+					add_action('wp_ajax_send_report', array($this, 'send_report'));
+					add_action('wp_ajax_nopriv_send_report', array($this, 'send_report'));					
+					add_action('wp_ajax_send_approval', array($this, 'send_approval'));
+					add_action('wp_ajax_nopriv_send_approval', array($this, 'send_approval'));					
 				}else{
 			        // frontend stuff
 			        add_filter('wpcf7_form_elements', array($this, 'wpcf7_set_form_hidden'), 10, 1 );
 					add_filter('wpcf7_form_id_attr', array($this, 'wpcf7_set_form_id'), 10, 1 );
 			        add_action("wpcf7_before_send_mail", array($this, 'wpcf7_save_form_data'));
 					add_filter('woocommerce_my_account_my_orders_actions', array($this, 'add_orders_actions'), 10, 2);
+			        add_action('wp_enqueue_scripts', array($this, 'wooaf2p_add_wp_scripts'));
 				}
 				
 				
@@ -175,22 +180,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 					exit;					
 				}
 				echo <<<EOF
-<style>
-#manage_forms_container .wp-post-image {
-	float: right;
-}
-#forms_container {
-	width: 50%;
-	float: left;
-}
-#texts_container {
-	width: 50%;
-	float: right;
-}
-#manage_forms_container .wrapper {
-	padding: 0 10px;
-}
-</style>
 <script>    
 	function redirect() { 
 		location.reload();
@@ -215,7 +204,7 @@ EOF;
 				}					
 				echo '<h2>' . __('Order', 'woocommerce') . ' ' . $order_id . '</h2>';
 				echo '<p>' . __('Status', 'woocommerce') . ': ' . $order->status . '</p>';
-				echo '<p>' . __('Text status', 'woo_af2p' ) . ': <strong class="forms-status ' . $forms_status . '">' . $forms_status_description . '</strong></p>';
+				echo '<p class="dashicons-format-status action-icon">' . __('Text status', 'woo_af2p' ) . ': <strong class="forms-status ' . $forms_status . '">' . $forms_status_description . '</strong></p>';
 				if ($order->status !== 'processing'){
 					echo __('For send texts the order must be in processing status. Wait for changing order status.', 'woo_af2p') . '<br>';	
 				}else{?>
@@ -237,8 +226,126 @@ EOF;
 					print_r($emails['WC_Email_Customer_Request_Texts']);
 					echo "</pre>";
 */
+					if ($forms_status == 'awaiting-approval' or $forms_status == 'preview-approved'){
+						$nonce_approval = wp_create_nonce('send_preview_approval');
+						$nonce_report = wp_create_nonce('send_preview_report');
+						$af2p_preview_url = get_post_meta($order_id, 'af2p-preview-url', true);
+						?>
+						<hr>
+						<h3 class="dashicons-download action-icon"><?php if ($forms_status == 'preview-approved'){ _e('Preview approved','woo_af2p'); }else{ _e('Preview','woo_af2p'); }?></h3>
+						<a href="<?php echo $af2p_preview_url; ?>" target="_blank"><img class="document-preview" src="/wp-includes/images/crystal/document.png"></a>
+						<?php
+						if ($forms_status != 'preview-approved'){
+						?>
+						<p>
+							<button class="button button-primary" name="send" id="sendapproval"><?php _e('Approve','woo_af2p'); ?></button>
+						</p>
+						<?php } ?>
+						<hr>
+						<h3 class="dashicons-format-chat action-icon"><?php _e('Error reported','woo_af2p'); ?></h3>
+						<?php
+						$args = array(
+							'post_id' 	=> $order_id,
+							'approve' 	=> 'approve',
+							'type' 		=> 'order_report'
+						);
+						remove_filter('comments_clauses', 'woocommerce_exclude_order_comments');
+						$notes = get_comments( $args );
+						add_filter('comments_clauses', 'woocommerce_exclude_order_comments');
+						?>
+						<ul class="order_notes" id="reports-container">
+						<?php
+						if ( $notes ) {
+							foreach( $notes as $note ) {
+								//$note_classes = get_comment_meta( $note->comment_ID, 'is_customer_note', true ) ? array( 'customer-note', 'note' ) : array( 'note' );
+								$note_classes = array( 'note' );
+								?>
+								<li rel="<?php echo absint( $note->comment_ID ) ; ?>" class="<?php echo implode( ' ', $note_classes ); ?>">
+									<div class="note_content">
+										<?php echo wpautop( wptexturize( wp_kses_post( $note->comment_content ) ) ); ?>
+									</div>
+									<p class="meta">
+										<?php printf( __( 'added %s ago', 'ww_af2p' ), human_time_diff( strtotime( $note->comment_date_gmt ), current_time( 'timestamp', 1 ) ) ); ?>
+									</p>
+								</li>
+								<?php
+							}
+						} else {
+							if ($forms_status == 'preview-approved'){
+								echo '<li>' . __( 'Any error was reported for this order.', 'woo_af2p' ) . '</li>';
+							}else{
+								echo '<li>' . __( 'There are no error reported for this order yet.', 'woo_af2p' ) . '</li>';
+							}
+						}
+					
+						echo '</ul>';
+						
+						if ($forms_status != 'preview-approved'){
+						?>
 
-					echo '<div id="manage_forms_container">';
+						<textarea name="note" id="reportnote" placeholder="<?php _e('Write here your error note', 'woo_af2p'); ?>"></textarea>
+						<p>
+						<button class="button button-primary" name="send" id="sendreport"><?php _e('Report an error','woo_af2p'); ?></button>
+						</p>
+						<script type="text/javascript" >
+						jQuery(document).ready(function($) {
+							if(typeof ajaxurl === "undefined"){
+								var ajaxurl ='<?php echo admin_url('admin-ajax.php'); ?>';
+							}
+							$('button#sendapproval').on('click', function(){
+								var res = confirm("<?php _e('The approval will be final and not reversible. After you approve the preview your order will be put into production.','woo_af2p'); ?>");
+								if (res == true){
+									var data = {
+										action: 'send_approval',
+										_nonce: '<?php echo $nonce_approval; ?>',
+										order: '<?php echo $order_id ?>'
+									};
+									// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
+									$.post(ajaxurl, data, function(response) {
+										console.log(response);
+										if (response.success){
+											//alert(response.success);
+											location.reload(true);
+										}else{
+											alert("error");
+										}
+									});
+								}
+							});
+							$('button#sendreport').on('click', function(){
+								var note = $('#reportnote').val();
+								
+								if (typeof note === "string" && note.length > 0){
+									var data = {
+										action: 'send_report',
+										_nonce: '<?php echo $nonce_report; ?>',
+										order: '<?php echo $order_id ?>',
+										note: note
+									};
+									// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
+									$.post(ajaxurl, data, function(response) {
+										if (response.success){
+											console.log(response);
+											if (typeof response.comment !== 'undefined'){
+												//$(response.comment).appendTo('#reports-container');
+												$('#reports-container').prepend(response.comment);
+												$('#reportnote').val('');
+											}
+										}else{
+											alert("error");
+										}
+									});
+								}else{
+									alert('<?php _e('You must insert a note', 'woo_af2p'); ?>');
+								}
+							});
+						});
+						</script>
+						<?php
+						}
+					}
+	
+					echo '<div id="manage_forms_container" class="'.$forms_status.'">';
 
 					echo '<div id="forms_container">';
 					
@@ -264,7 +371,7 @@ EOF;
 
 					echo '<div id="texts_container">';
 					echo '<div class="wrapper">';
-					echo "<h3>" . __('Submitted Texts', 'woo_af2p') . "</h3>";
+					echo '<h3 class="dashicons-editor-alignleft action-icon">' . __('Submitted Texts', 'woo_af2p') . "</h3>";
 					$could_submit = true;
 					foreach ($forms as $key => $form){
 						echo "<hr>";
@@ -290,7 +397,7 @@ EOF;
 						if ($could_submit === true){
 							$nonce = wp_create_nonce('send_text_submit');
 							?>
-							<button class="button save_order button-primary tips" name="send" id="sendtext"><?php _e('Send texts','woo_af2p'); ?></button>
+							<button class="button button-primary" name="send" id="sendtext"><?php _e('Send texts','woo_af2p'); ?></button>
 							<script type="text/javascript" >
 							jQuery(document).ready(function($) {
 								if(typeof ajaxurl === "undefined"){
@@ -336,6 +443,7 @@ EOF;
 				}
 			}
 
+			//AJAX FUNCTIONS
 			function send_text() {
 				global $wpdb, $woocommerce; // this is how you get access to the database
 				$nonce = $_POST['_nonce'];
@@ -364,7 +472,6 @@ EOF;
 				
 				//carico il mailer. Questo fa si che vengano chiamate le classi delle email e relativi filtri e azioni
 				$mailer = $woocommerce->mailer();
-				
 				update_post_meta($order->id, 'forms_status', 'awaiting-preview');
 				//la mail viene inviata grazie all'aggancio a questa azione  
 				do_action( 'woocommerce_af2p_status_awaiting-submission_to_awaiting-preview', $order_id);
@@ -373,7 +480,125 @@ EOF;
 				die(); // this is required to return a proper result
 			}
 
+			function send_report() {
+				global $wpdb, $woocommerce, $current_user;
+				$nonce = $_POST['_nonce'];
+				$order_id = $_POST['order'];
+				$user_id = get_current_user_id();
+				$note = $_POST['note'];
+				
+				header('Content-Type: application/json');
+				if ( ! wp_verify_nonce( $nonce, 'send_preview_report' ) ) {
+				    // This nonce is not valid.
+					wp_send_json_error(); // {"success":false}
+				    die();
+				} 
+				if ( !$order_id || !$note) {
+				    // Order id is empty.
+					wp_send_json_error(); // {"success":false}
+				    die();
+				} 
 
+				$order = new WC_Order();
+				$order->get_order($order_id);
+				
+				if (!$order->id == $order_id or !$order->customer_user == $user_id ){
+					wp_send_json_error(); // {"success":false}
+				    die();					
+				}
+								
+				$time = current_time('mysql');
+
+				$data = array(
+				    'comment_post_ID' => $order_id,
+				    'comment_author' => $current_user->display_name,
+				    'comment_author_email' => $current_user->user_email,
+				    'comment_author_url' => $current_user->user_url,
+				    'comment_content' => $note,
+				    'comment_type' => 'order_report',
+				    'comment_parent' => 0,
+				    'user_id' => $user_id,
+				    'comment_author_IP' => $_SERVER['REMOTE_ADDR'],
+				    'comment_agent' => $_SERVER['HTTP_USER_AGENT'],
+				    'comment_date' => $time,
+				    'comment_approved' => 1,
+				);
+				$comment_id = wp_insert_comment($data);
+				
+				$args = array(
+					'post_id' 	=> $order_id,
+					'approve' 	=> 'approve',
+					'type' 		=> 'order_report',
+					'post_type' => 'shop_order'
+				);
+				remove_filter('comments_clauses', 'woocommerce_exclude_order_comments');
+				$comments = get_comments($args);
+
+				add_filter('comments_clauses', 'woocommerce_exclude_order_comments');
+				$comments = (array) $comments;
+				error_log(json_encode($comments));
+				//$note = $comments[count($comments)-1];
+				$note = $comments[0];
+				ob_start();
+				?>
+				<li rel="<?php echo absint( $note->comment_ID ) ; ?>" class="note">
+					<div class="note_content">
+						<?php echo wpautop( wptexturize( wp_kses_post( $note->comment_content ) ) ); ?>
+					</div>
+					<p class="meta">
+						<?php printf( __( 'added %s ago', 'ww_af2p' ), human_time_diff( strtotime( $note->comment_date_gmt ), current_time( 'timestamp', 1 ) ) ); ?>
+					</p>
+				</li>
+				<?php
+				$comment = ob_get_contents();
+				ob_end_clean();
+				
+				//carico il mailer. Questo fa si che vengano chiamate le classi delle email e relativi filtri e azioni
+				//$mailer = $woocommerce->mailer();
+				//la mail viene inviata grazie all'aggancio a questa azione  
+				do_action( 'woocommerce_af2p_send_report', $order_id);
+				
+				
+				echo json_encode(array('success' => true, 'status' => 'ok', 'order_id' => $order_id, 'user_id' => $user_id, 'oerder' => $order->id, 'customer user' => $order->customer_user, 'user_info' => $current_user, 'comments' => $comments, 'comment' => $comment));
+				die(); // this is required to return a proper result
+			}
+			
+			function send_approval() {
+				global $wpdb, $woocommerce, $current_user;
+				$nonce = $_POST['_nonce'];
+				$order_id = $_POST['order'];
+				$user_id = get_current_user_id();
+				
+				header('Content-Type: application/json');
+				if ( ! wp_verify_nonce( $nonce, 'send_preview_approval' ) ) {
+				    // This nonce is not valid.
+					wp_send_json_error(); // {"success":false}
+				    die();
+				} 
+				if ( !$order_id) {
+				    // Order id is empty.
+					wp_send_json_error(); // {"success":false}
+				    die();
+				} 
+
+				$order = new WC_Order();
+				$order->get_order($order_id);
+				
+				if (!$order->id == $order_id or !$order->customer_user == $user_id ){
+					wp_send_json_error(); // {"success":false}
+				    die();					
+				}
+				
+				//carico il mailer. Questo fa si che vengano chiamate le classi delle email e relativi filtri e azioni
+				$mailer = $woocommerce->mailer();
+				update_post_meta($order->id, 'forms_status', 'preview-approved');
+				//la mail viene inviata grazie all'aggancio a questa azione  
+				do_action( 'woocommerce_af2p_status_awaiting-approval_to_preview-approved', $order_id);
+				
+				echo json_encode(array('success' => true, 'status' => 'ok', 'order_id' => $order_id, 'user_id' => $user_id, 'oerder' => $order->id, 'customer user' => $order->customer_user, 'user_info' => $current_user));
+				die(); // this is required to return a proper result
+			}
+			
 			/**
 			 * creates the tab for the administrator, where administered product sample.
 			 */
@@ -479,6 +704,15 @@ EOF;
 				wp_enqueue_script( 'wooaf2p-scripts' );
 			}
 
+			function wooaf2p_add_wp_scripts() {
+				//wp_enqueue_media();
+				// Respects SSL, style-admin.css is relative to the current file
+				wp_register_style( 'wooaf2p-styles', plugins_url('css/style.css', __FILE__) );
+				//wp_register_script( 'wooaf2p-scripts', plugins_url('js/script-admin.js', __FILE__), array('jquery') );
+				wp_enqueue_style( 'wooaf2p-styles' );
+				//wp_enqueue_script( 'wooaf2p-scripts' );
+			}
+
 			/**
 			 *  Add a custom email to the list of emails WooCommerce should load
 			 *
@@ -490,14 +724,17 @@ EOF;
 			    // include our custom email class
 			    require( 'includes/class-wc-email-customer-request-texts.php' );
 			    require( 'includes/class-wc-email-text-submitted.php' );
+				require( 'includes/class-wc-email-customer-preview-submitted.php' );
 			    // add the email class to the list of email classes that WooCommerce loads
 			    $email_classes['WC_Email_Customer_Request_Texts'] = new WC_Email_Customer_Request_Texts();
 			    $email_classes['WC_Email_Text_Submitted'] = new WC_Email_Text_Submitted();
+				$email_classes['WC_Email_Customer_Preview_Submitted'] = new WC_Email_Customer_Preview_Submitted();
 			    return $email_classes;
 			}
 
 			function request_text_email_available($emails) {
 				array_push($emails, 'wc_request_texts');
+				array_push($emails, 'wc_preview_submitted');
 				return $emails;
 			}
 			
@@ -591,39 +828,90 @@ EOF;
 					<?php
 					if ($forms_status != 'awaiting-submission'){
 						$forms = get_post_meta($post->ID, 'forms', true);
-		
+						?>
+						
+						<div class="dashicons-list-view action-icon" id="expand-texts"><?php _e('Show texts', 'woo_af2p');?></div>
+						<div class="dashicons-dismiss action-icon" id="collapse-texts"><?php _e('Collapse texts', 'woo_af2p');?></div>
+						<div id="texts-container">
+						<?php
 						foreach ($forms as $key => $form){
 							echo "<hr>";
 							echo "<h3>" . $form['product_title'] . "</h3>";
-							foreach ( $form['submitted'] as $product_form => $data){
+							foreach ( $form['submitted'] as $product_form => $product_data){
 								$form_data = get_page_by_path($product_form, OBJECT, 'wpcf7_contact_form');
 								echo "<h5>".$form_data->post_title."</h5>";
-								foreach($data as $data_key => $data_value){
+								foreach($product_data as $data_key => $data_value){
 									echo "<p>";
 									echo "<strong>$data_key</strong><br>$data_value";
 									echo "</p>";
 								}
 							}
 						}
+						echo "</div>";
 					}
-						
+					if ($forms_status != 'awaiting-preview'){
+					?>
+					<hr>
+					<?php
+					$args = array(
+						'post_id' 	=> $post->ID,
+						'approve' 	=> 'approve',
+						'type' 		=> 'order_report'
+					);
+					$notes = get_comments( $args );
+					?>
+					<div class="dashicons-format-chat action-icon" id="expand-reports"><?php _e('Show errors', 'woo_af2p'); ?></div>
+					<div class="dashicons-dismiss action-icon" id="collapse-reports"><?php _e('Collapse errors', 'woo_af2p');?></div>
+					<ul class="order_notes" id="reports-container">
+					<?php
+					if ( $notes ) {
+						foreach( $notes as $note ) {
+							//$note_classes = get_comment_meta( $note->comment_ID, 'is_customer_note', true ) ? array( 'customer-note', 'note' ) : array( 'note' );
+							$note_classes = array( 'note' );
+							?>
+							<li rel="<?php echo absint( $note->comment_ID ) ; ?>" class="<?php echo implode( ' ', $note_classes ); ?>">
+								<div class="note_content">
+									<?php echo wpautop( wptexturize( wp_kses_post( $note->comment_content ) ) ); ?>
+								</div>
+								<p class="meta">
+									<?php printf( __( 'added %s ago', 'ww_af2p' ), human_time_diff( strtotime( $note->comment_date_gmt ), current_time( 'timestamp', 1 ) ) ); ?>
+								</p>
+							</li>
+							<?php
+						}
+					} else {
+						echo '<li>' . __( 'There are no error reported for this order yet.', 'woo_af2p' ) . '</li>';
+					}
+				
+					echo '</ul>';
+					}
 					if ($forms_status == 'awaiting-preview' || $forms_status == 'awaiting-approval'){
 						$btn_value = __( 'Send Preview', 'woo_af2p' );
 						if ($forms_status == 'awaiting-approval')
 							$btn_value = __( 'Send Again', 'woo_af2p' );	
-					?>
-					<div class="upload_preview">
-					    <label for="meta-preview" class="prfx-row-title"><?php _e( 'Preview', 'woo_af2p' )?></label>
-					    <?php if ( isset ( $data['af2p-preview-url'] ) ){ ?>
-					    <a href="<?php echo $data['af2p-preview-url'][0]; ?>" target="_blank"><img class="document-preview" src="/wp-includes/images/crystal/document.png"></a>	
-					    <?php }?>
-					    <input type="hidden" name="meta-preview" id="meta-preview" value="<?php if ( isset ( $data['af2p-preview-url'] ) ) echo $data['af2p-preview-url'][0]; ?>" />
-					    <input type="button" id="meta-preview-button" class="button" rel="442"value="<?php _e( 'Upload the Preview document', 'woo_af2p' )?>" />
-					    
-					    <input type="submit" class="button send_preview button-primary" name="send_preview" value="<?php echo $btn_value ?>">
-					</div>
+							?>
+							<hr>
+							<div class="upload_preview">
+							    <?php if ( isset ( $data['af2p-preview-url'] ) ){ ?>
+							    <div class="dashicons-upload action-icon" id="title_upload_preview"><?php _e( 'Preview uploaded', 'woo_af2p' )?></div>
+							    <a href="<?php echo $data['af2p-preview-url'][0]; ?>" target="_blank"><img class="document-preview" src="/wp-includes/images/crystal/document.png"></a>	
+							    <?php }?>
+							    <p>
+							    <input type="text" name="meta-preview" id="meta-preview" readonly="readonly" value="<?php if ( isset ( $data['af2p-preview-url'] ) ) echo $data['af2p-preview-url'][0]; ?>" />
+							    <input type="button" id="meta-preview-button" class="button" rel="<?php echo $post->ID ?>" value="<?php _e( 'Upload the Preview document', 'woo_af2p' )?>" />
+								</p>
+							    <?php if ( isset ( $data['af2p-preview-url'] ) ){ ?>
+							    <p>
+							    <input type="submit" class="button send_preview button-primary" style="float:right" name="send_preview" value="<?php echo $btn_value ?>">
+							    </p>
+							    <?php }?>					    
+							</div>
 					<?php } else if ($forms_status == 'preview-approved'){
-						echo $data['af2p-preview-url'][0];
+						?>
+						<hr>
+						<div class="dashicons-upload action-icon" id="title_upload_preview"><?php _e( 'Preview uploaded and approved', 'woo_af2p' )?></div>
+						<a href="<?php echo $data['af2p-preview-url'][0]; ?>" target="_blank"><img class="document-preview" src="/wp-includes/images/crystal/document.png"></a>
+						<?php	
 					}else{
 						// unfind status
 					}?>
@@ -635,7 +923,8 @@ EOF;
 			}
 
 			function wooaf2p_meta_boxes_save( $post_id ) {
-
+				global $woocommerce;
+				
 			    // Checks save status
 			    $is_autosave = wp_is_post_autosave( $post_id );
 			    $is_revision = wp_is_post_revision( $post_id );
@@ -650,13 +939,14 @@ EOF;
 			    //if( isset( $_POST[ 'meta-text' ] ) ) {
 			    //    update_post_meta( $post_id, 'meta-text', sanitize_text_field( $_POST[ 'meta-text' ] ) );
 			    //}
-			    
 			    // Checks for input and saves if needed
 				if( isset( $_POST[ 'meta-preview' ] ) ) {
 				    update_post_meta( $post_id, 'af2p-preview-url', $_POST[ 'meta-preview' ] );
 					//return;
 				}
-				if( isset( $_POST[ 'send_preview' ] ) ) {
+				if( isset( $_POST['send_preview'] ) ) {
+					//carico il mailer. Questo fa si che vengano chiamate le classi delle email e relativi filtri e azioni
+					$mailer = $woocommerce->mailer();
 				    update_post_meta( $post_id, 'forms_status', 'awaiting-approval' );
 				    do_action( 'woocommerce_af2p_status_awaiting-preview_to_awaiting-approval', $post_id);
 					//return;
