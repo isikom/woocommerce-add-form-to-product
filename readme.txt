@@ -46,6 +46,10 @@ The manual installation method involves downloading our plugin and uploading it 
 
 == Changelog ==
 
+
+= 0.5.1 - 01/04/2014 =
+* Show Error on admin fixed
+
 = 0.5 - 01/04/2014 =
 * added some functions
 * first beta released

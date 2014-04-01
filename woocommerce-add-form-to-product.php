@@ -5,7 +5,7 @@
  * Description: Add a custom text form to an item. This is required when item in your shop need to get a custom text, for example wedding invitations, plates, serigraphs for pens and more
  * Author: Michele Menciassi
  * Author URI: https://plus.google.com/+MicheleMenciassi
- * Version: 0.5.0
+ * Version: 0.5.1
  * License: GPLv2 or later
  */
  
@@ -849,7 +849,7 @@ EOF;
 						}
 						echo "</div>";
 					}
-					if ($forms_status != 'awaiting-preview'){
+					if ($forms_status != 'awaiting-preview' && $forms_status != 'awaiting-submission'){
 					?>
 					<hr>
 					<?php
