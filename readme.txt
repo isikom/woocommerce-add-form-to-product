@@ -46,6 +46,16 @@ The manual installation method involves downloading our plugin and uploading it 
 
 == Changelog ==
 
+= 0.5.3 - 13/04/2014 =
+* Added customer preview approved
+* Fix access to the text submission page 
+* Changed form into text submission page
+* Fix wp contact form 7 save data
+
+= 0.5.2 - 09/04/2014 =
+* Fixed email sending
+* Added missing email
+* Fixed broken preview image
 
 = 0.5.1 - 01/04/2014 =
 * Show Error on admin fixed

@@ -55,17 +55,8 @@ ul.order_notes li p.meta {
 
 #manage_forms_container .wp-post-image {
 	float: right;
-}
-#forms_container {
-	width: 50%;
-	float: left;
-}
-#texts_container {
-	width: 50%;
-	float: right;
-}
-#manage_forms_container .wrapper {
-	padding: 0 10px;
+	width: 200px;
+	height: 200px;
 }
 
 #manage_forms_container.awaiting-preview > #forms_container,
@@ -87,4 +78,29 @@ ul.order_notes li p.meta {
 #manage_forms_container.awaiting-approval .wrapper,
 #manage_forms_container.preview-approved .wrapper {
 	padding: 0;
+}
+
+#approve-message {
+	display:none;
+}
+
+#approve-message {
+	padding: 10px 20px;
+	display: inline-block;
+	font-weight: bold;
+	border-radius: 6px;
+	text-transform: uppercase;
+	width: auto;
+}
+
+#approve-message.error{
+	color: white;
+	border: 1px solid red;
+	background: lightcoral;
+}
+
+#approve-message.success{
+	color: green;
+	border: 1px solid green;
+	background: lightgreen;
 }

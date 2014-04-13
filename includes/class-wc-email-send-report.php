@@ -3,12 +3,12 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  
 /**
- * Customer Request Texts Email
+ * Customer Text Submitted Email
  *
  * @since 0.1
  * @extends WC_Email
  */
-class WC_Email_Customer_Request_Texts extends WC_Email {
+class WC_Email_Send_Report extends WC_Email {
  
 	 /**
 	 * Set email defaults
@@ -18,30 +18,34 @@ class WC_Email_Customer_Request_Texts extends WC_Email {
 	public function __construct() {
 	 
 	    // set ID, this simply needs to be a unique name
-	    $this->id = 'wc_request_texts';
+	    $this->id = 'wc_send_report';
 	 
-	    // this is the title in WooCommerce Email settings
-	    $this->title = __( 'Request Texts', 'woo_af2p' );
+	    // this is the title in sendWooCommerce Email settings
+	    $this->title = __( 'Send Report', 'woo_af2p' );
 	 
 	    // this is the description in WooCommerce email settings
-	    $this->description = __( 'Request Texts Notification emails are sent when an order need to be integrate with texts', 'woo_af2p' );
+	    $this->description = __( 'Send Report emails are sent when client report errors on a submitted preview', 'woo_af2p' );
 	 
 	    // these are the default heading and subject lines that can be overridden using the settings
-	    $this->heading = __( 'Request Texts', 'woo_af2p' );;
-	    $this->subject = __( 'Request Texts', 'woo_af2p' );;
+	    $this->heading = __( 'Send Report', 'woo_af2p' );;
+	    $this->subject = __( 'Send Report for order {order_number}', 'woo_af2p' );;
 	 
 	    // these define the locations of the templates that this email should use, we'll just use the new order template since this email is similar
-	    $this->template_base = untrailingslashit(  dirname(plugin_dir_path( __FILE__ ) ) ) . '/templates/';
-		$this->template_html 	= 'emails/customer-request-texts.php';
-		$this->template_plain 	= 'emails/plain/customer-request-texts.php';
+	    $this->template_base = untrailingslashit( dirname(plugin_dir_path( __FILE__ ) ) ) . '/templates/';
+		$this->template_html = 'emails/send-report.php';
+		$this->template_plain = 'emails/plain/send-report.php';
 	 
 	    // Trigger on new paid orders
-	    add_action( 'woocommerce_order_status_pending_to_processing_notification', array( $this, 'trigger' ) );
-	    add_action( 'woocommerce_order_status_failed_to_processing_notification',  array( $this, 'trigger' ) );
-	 	add_action( 'woocommerce_order_status_on-hold_to_processing_notification', array( $this, 'trigger' ) );
-		
+	 	add_action( 'woocommerce_af2p_send_report', array( $this, 'trigger' ) );
+
 	    // Call parent constructor to load any other defaults not explicity defined here
 	    parent::__construct();
+		
+		// Other settings
+		$this->recipient = $this->get_option( 'recipient' );
+
+		if ( ! $this->recipient )
+			$this->recipient = get_option( 'admin_email' );
 			 
 	}
 
@@ -52,8 +56,6 @@ class WC_Email_Customer_Request_Texts extends WC_Email {
 	 * @param int $order_id
 	 */
 	public function trigger( $order_id ) {
-		
-		error_log('Trigger inside');
 	 
 	    // bail if no order ID is present
 	    if ( ! $order_id )
@@ -61,11 +63,6 @@ class WC_Email_Customer_Request_Texts extends WC_Email {
 	 
 	    // setup order object
 	    $this->object = new WC_Order( $order_id );
-		$this->recipient	= $this->object->billing_email;
-
-	    // bail if shipping method is not expedited
-	    //if ( ! in_array( $this->object->get_shipping_method(), array( 'Three Day Shipping', 'Next Day Shipping' ) ) )
-	    //    return;
 	 
 	    // replace variables in the subject/headings
 	    $this->find[] = '{order_date}';
@@ -73,7 +70,7 @@ class WC_Email_Customer_Request_Texts extends WC_Email {
 	 
 	    $this->find[] = '{order_number}';
 	    $this->replace[] = $this->object->get_order_number();
-		
+	 
 	    if ( ! $this->is_enabled() || ! $this->get_recipient() )
 	        return;
 	 
@@ -127,6 +124,13 @@ class WC_Email_Customer_Request_Texts extends WC_Email {
 	            'label'   => __( 'Enable this email notification', 'woocommerce' ),
 	            'default' => 'yes'
 	        ),
+			'recipient' => array(
+				'title' 		=> __( 'Recipient(s)', 'woocommerce' ),
+				'type' 			=> 'text',
+				'description' 	=> sprintf( __( 'Enter recipients (comma separated) for this email. Defaults to <code>%s</code>.', 'woocommerce' ), esc_attr( get_option('admin_email') ) ),
+				'placeholder' 	=> '',
+				'default' 		=> ''
+			),
 	        'subject'    => array(
 	            'title'       => __( 'Subject', 'woocommerce' ),
 	            'type'        => 'text',
