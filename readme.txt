@@ -2,8 +2,8 @@
 Contributors: isikom, zauker
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, woocommerce, forms, addictional, typography 
 Requires at least: 3.5
-Tested up to: 3.8
-Stable tag: 2.0.20
+Tested up to: 3.9.1
+Stable tag: 0.5.4
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,12 @@ The manual installation method involves downloading our plugin and uploading it 
 == Screenshots ==
 
 == Changelog ==
+
+= 0.5.4 - 11/06/2014 =
+* Fix send request email
+* Ignore text form for sample items (Woocommerce Sample) 
+* .pot file added
+* minor fixes
 
 = 0.5.3 - 13/04/2014 =
 * Added customer preview approved

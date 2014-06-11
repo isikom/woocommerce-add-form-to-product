@@ -5,7 +5,7 @@
  * Description: Add a custom text form to an item. This is required when item in your shop need to get a custom text, for example wedding invitations, plates, serigraphs for pens and more
  * Author: Michele Menciassi
  * Author URI: https://plus.google.com/+MicheleMenciassi
- * Version: 0.5.3
+ * Version: 0.5.4
  * License: GPLv2 or later
  */
  
@@ -32,6 +32,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 			 * to add the necessary actions for the plugin
 			 */
 			public function init() {
+				require_once WPCF7_PLUGIN_DIR . '/includes/controller.php';
 				if (is_admin()){
 			        // backend stuff
 			        add_action('woocommerce_product_write_panel_tabs', array($this, 'product_write_panel_tab'));
@@ -264,9 +265,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 							'approve' 	=> 'approve',
 							'type' 		=> 'order_report'
 						);
-						remove_filter('comments_clauses', 'woocommerce_exclude_order_comments');
+						//remove_filter('comments_clauses', 'woocommerce_exclude_order_comments');
+						remove_filter('comments_clauses', array( 'WC_Comments', 'exclude_order_comments' ) );
 						$notes = get_comments( $args );
-						add_filter('comments_clauses', 'woocommerce_exclude_order_comments');
+						//add_filter('comments_clauses', 'woocommerce_exclude_order_comments');
+						add_filter('comments_clauses', array( 'WC_Comments', 'exclude_order_comments' ) );
 						?>
 						<ul class="order_notes" id="reports-container">
 						<?php
@@ -445,14 +448,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 									$formdata = do_shortcode($cf7_shortcode);
 									$label = array();
 									// STOP GET FORM SEVEN LABEL
-								
+									
+									
 									foreach($data as $data_key => $data_value){
 										$htmlform .= "<p>";
 										$pattern = '/<p>(.+)<br.*\n.*name="'.$data_key.'"/i';
 										if (preg_match($pattern, $formdata, $label)){
 											$data_key = $label[1];
+											$htmlform .= "<strong>$data_key</strong><br>$data_value";
 										}
-										$htmlform .= "<strong>$data_key</strong><br>$data_value";
 										$htmlform .= "</p>";
 									}
 								}
@@ -493,7 +497,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 									// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
 									$.post(ajaxurl, data, function(response) {
 										if (response.success){
-											location.reload(true);
+											<?php echo 'window.location.replace("'.$_SERVER['REQUEST_URI'].'&sent=ok");'; ?>
+											//location.reload(true);
 										}else{
 											alert("error");
 										}
@@ -511,6 +516,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 					echo $htmlform;
 					
 					// START SEND TEXT BUTTON
+					echo '<div class="af2p_action bottom">';
 					if ($forms_status == 'awaiting-submission'){
 						if ($could_submit === true){
 							?>
@@ -519,8 +525,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 						}else{
 							echo "<p>" . __("You must complete all forms requested. After that you'll can send texts and awaiting a preview", "woo_af2p") . "</p>";
 						}
+					}else{
+						// END SEND TEXT BUTTON
+						$sent = $_REQUEST['sent'];
+						if (!empty($sent) && $sent== 'ok'){
+							echo "<p>" . __("Thank you for submitting your texts. Your order will be processed as soon as possible", "woo_af2p") . "</p>";
+						}						
 					}
-					// END SEND TEXT BUTTON										
+					echo '</div>';
+						
 					//echo '<pre>';
 					//print_r($forms);
 					//echo '</pre>';
@@ -857,13 +870,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 							$af2p_forms = get_post_meta($product_id, 'af2p_forms', true);
 							error_log("==UPDATE== FORMS ".serialize($af2p_forms));
 							if (!empty($af2p_forms) && is_array($af2p_forms)){
-								$enabled = true;
-								$items_forms[$cart_item_key] = array('product_id' => $product_id,
-																	 'product_title' => $values['data']->post->post_title,
-																	 'forms' => $af2p_forms);
-								error_log("==UPDATE== DATA ".serialize($values['data']));
-								error_log("==UPDATE== POST ".serialize($values['data']->post));								
-								error_log("==UPDATE== ITEMS ".serialize($items_forms));															 
+								if ($values['sample']){
+									// is a sample we don't ask texts (TODO we will could enable it by check)
+								}else{
+									$enabled = true;
+									$items_forms[$cart_item_key] = array('product_id' => $product_id,
+																		 'product_title' => $values['data']->post->post_title,
+																		 'forms' => $af2p_forms);
+									error_log("==UPDATE== DATA ".serialize($values['data']));
+									error_log("==UPDATE== POST ".serialize($values['data']->post));								
+									error_log("==UPDATE== ITEMS ".serialize($items_forms));									
+								}
 							}
 						}
 					}
@@ -941,16 +958,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 								// GET FORM SEVEN LABEL
 								//$cf7_shortcode = '[contact-form-7 id="'.$form_data->ID.'" title="'.$form_data->post_title.'"]';
 								//$formdata = do_shortcode($cf7_shortcode);
-								//$label = array();
+								$formdata = wpcf7_contact_form_tag_func(array('id' => $form_data->ID, 'title' => $form_data->post_title), null, 'contact-form-7');
+								$label = array();
 								// STOP GET FORM SEVEN LABEL
 
 								foreach($product_data as $data_key => $data_value){
 									echo "<p>";
-									//$pattern = '/<p>(.+)<br.*\n.*name="'.$data_key.'"/i';
-									//if (preg_match($pattern, $formdata, $label)){
-									//	$data_key = $label[1];
-									//}
-									echo "<strong>$data_key</strong><br>$data_value";
+									$pattern = '/<p>(.+)<br.*\n.*name="'.$data_key.'"/i';
+									if (preg_match($pattern, $formdata, $label)){
+										$data_key = $label[1];
+										echo "<strong>$data_key</strong><br>$data_value";
+									}
 									echo "</p>";
 								}
 							}

@@ -5,8 +5,12 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 /**
  * Customer Request Texts Email
  *
- * @since 0.1
  * @extends WC_Email
+ * @class 		WC_Email_Customer_Request_Texts
+ * @version		2.0.0
+ * @package		WooCommerce/Classes/Emails
+ * @author 		Iskom
+ * @extends 	WC_Email
  */
 class WC_Email_Customer_Request_Texts extends WC_Email {
  
@@ -58,11 +62,16 @@ class WC_Email_Customer_Request_Texts extends WC_Email {
 	    // bail if no order ID is present
 	    if ( ! $order_id )
 	        return;
+
+		$forms_required = get_post_meta($order_id, 'forms_required', true) ? get_post_meta($order_id, 'forms_required', true) : false;
+		if ($forms_required !== '1')
+			return;
 	 
 	    // setup order object
 	    $this->object = new WC_Order( $order_id );
 		$this->recipient	= $this->object->billing_email;
 
+					  	
 	    // bail if shipping method is not expedited
 	    //if ( ! in_array( $this->object->get_shipping_method(), array( 'Three Day Shipping', 'Next Day Shipping' ) ) )
 	    //    return;

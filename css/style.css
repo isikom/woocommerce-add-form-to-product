@@ -104,3 +104,24 @@ ul.order_notes li p.meta {
 	border: 1px solid green;
 	background: lightgreen;
 }
+
+.af2p_action.bottom {
+	position: fixed;
+	bottom: 0;
+	background: black;
+	height: auto;
+	left: 0;
+	right: 0;
+	z-index: 100;
+	background-color: rgba(0,0,0,0.7);
+	padding: 20px;
+	color: white;
+	text-align: center;
+}
+.af2p_action.bottom p {
+	margin: 0;
+}
+
+#sendtext-bottom {
+	color: #333;
+}

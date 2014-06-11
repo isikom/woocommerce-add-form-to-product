@@ -1,0 +1,496 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WooCommerce Add Form to Product\n"
+"POT-Creation-Date: 2014-06-11 08:02+0100\n"
+"PO-Revision-Date: 2014-06-11 08:02+0100\n"
+"Last-Translator: Michele Menciassi <m.menciassi@gmail.com>\n"
+"Language-Team: ISIKOM <info@isikom.net>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.5\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../includes/class-wc-email-customer-preview-approved.php:24
+msgid "Customer Preview Approved"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:27
+msgid ""
+"Customer Preview Approved emails are sent when a preview document was "
+"approved"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:30
+#: ../includes/class-wc-email-customer-preview-approved.php:31
+#: ../includes/class-wc-email-preview-approved.php:24
+#: ../includes/class-wc-email-preview-approved.php:30
+msgid "Preview Approved"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:123
+#: ../includes/class-wc-email-customer-preview-submitted.php:123
+#: ../includes/class-wc-email-customer-request-texts.php:134
+#: ../includes/class-wc-email-preview-approved.php:122
+#: ../includes/class-wc-email-send-report.php:122
+#: ../includes/class-wc-email-text-submitted.php:122
+msgid "Enable/Disable"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:125
+#: ../includes/class-wc-email-customer-preview-submitted.php:125
+#: ../includes/class-wc-email-customer-request-texts.php:136
+#: ../includes/class-wc-email-preview-approved.php:124
+#: ../includes/class-wc-email-send-report.php:124
+#: ../includes/class-wc-email-text-submitted.php:124
+msgid "Enable this email notification"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:129
+#: ../includes/class-wc-email-customer-preview-submitted.php:129
+#: ../includes/class-wc-email-customer-request-texts.php:140
+#: ../includes/class-wc-email-preview-approved.php:135
+#: ../includes/class-wc-email-send-report.php:135
+#: ../includes/class-wc-email-text-submitted.php:135
+msgid "Subject"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:131
+#: ../includes/class-wc-email-customer-preview-submitted.php:131
+#: ../includes/class-wc-email-customer-request-texts.php:142
+#: ../includes/class-wc-email-preview-approved.php:137
+#: ../includes/class-wc-email-send-report.php:137
+#: ../includes/class-wc-email-text-submitted.php:137
+#, php-format
+msgid ""
+"This controls the email subject line. Leave blank to use the default "
+"subject: <code>%s</code>."
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:136
+#: ../includes/class-wc-email-customer-preview-submitted.php:136
+#: ../includes/class-wc-email-customer-request-texts.php:147
+#: ../includes/class-wc-email-preview-approved.php:142
+#: ../includes/class-wc-email-send-report.php:142
+#: ../includes/class-wc-email-text-submitted.php:142
+msgid "Email Heading"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:138
+#: ../includes/class-wc-email-customer-preview-submitted.php:138
+#: ../includes/class-wc-email-customer-request-texts.php:149
+#: ../includes/class-wc-email-preview-approved.php:144
+#: ../includes/class-wc-email-send-report.php:144
+#: ../includes/class-wc-email-text-submitted.php:144
+#, php-format
+msgid ""
+"This controls the main heading contained within the email notification. "
+"Leave blank to use the default heading: <code>%s</code>."
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:143
+#: ../includes/class-wc-email-customer-preview-submitted.php:143
+#: ../includes/class-wc-email-customer-request-texts.php:154
+#: ../includes/class-wc-email-preview-approved.php:149
+#: ../includes/class-wc-email-send-report.php:149
+#: ../includes/class-wc-email-text-submitted.php:149
+msgid "Email type"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-approved.php:145
+#: ../includes/class-wc-email-customer-preview-submitted.php:145
+#: ../includes/class-wc-email-customer-request-texts.php:156
+#: ../includes/class-wc-email-preview-approved.php:151
+#: ../includes/class-wc-email-send-report.php:151
+#: ../includes/class-wc-email-text-submitted.php:151
+msgid "Choose which format of email to send."
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-submitted.php:24
+#: ../includes/class-wc-email-customer-preview-submitted.php:30
+#: ../includes/class-wc-email-customer-preview-submitted.php:31
+msgid "Preview Submitted"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-preview-submitted.php:27
+msgid "Preview Submitted emails are sent when a preview document was uploaded"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-request-texts.php:28
+#: ../includes/class-wc-email-customer-request-texts.php:34
+#: ../includes/class-wc-email-customer-request-texts.php:35
+msgid "Request Texts"
+msgstr ""
+
+#: ../includes/class-wc-email-customer-request-texts.php:31
+msgid ""
+"Request Texts Notification emails are sent when an order need to be "
+"integrate with texts"
+msgstr ""
+
+#: ../includes/class-wc-email-preview-approved.php:27
+msgid ""
+"Preview Approved emails are sent when client submit approve the proposal "
+"preview"
+msgstr ""
+
+#: ../includes/class-wc-email-preview-approved.php:31
+msgid "Preview Approved for order {order_number}"
+msgstr ""
+
+#: ../includes/class-wc-email-preview-approved.php:128
+#: ../includes/class-wc-email-send-report.php:128
+#: ../includes/class-wc-email-text-submitted.php:128
+msgid "Recipient(s)"
+msgstr ""
+
+#: ../includes/class-wc-email-preview-approved.php:130
+#: ../includes/class-wc-email-send-report.php:130
+#: ../includes/class-wc-email-text-submitted.php:130
+#, php-format
+msgid ""
+"Enter recipients (comma separated) for this email. Defaults to <code>%s</"
+"code>."
+msgstr ""
+
+#: ../includes/class-wc-email-send-report.php:24
+#: ../includes/class-wc-email-send-report.php:30
+msgid "Send Report"
+msgstr ""
+
+#: ../includes/class-wc-email-send-report.php:27
+msgid ""
+"Send Report emails are sent when client report errors on a submitted preview"
+msgstr ""
+
+#: ../includes/class-wc-email-send-report.php:31
+msgid "Send Report for order {order_number}"
+msgstr ""
+
+#: ../includes/class-wc-email-text-submitted.php:24
+#: ../includes/class-wc-email-text-submitted.php:30
+msgid "Text Submitted"
+msgstr ""
+
+#: ../includes/class-wc-email-text-submitted.php:27
+msgid ""
+"Text Submitted Notification emails are sent when client submit texts "
+"requested in a order"
+msgstr ""
+
+#: ../includes/class-wc-email-text-submitted.php:31
+msgid "Text Submitted for order {order_number}"
+msgstr ""
+
+#: ../templates/emails/customer-preview-approved.php:16
+#: ../templates/emails/plain/customer-preview-approved.php:20
+msgid ""
+"We are pleased, to inform you that with your approval of the preview your "
+"order will be quickly put into production. You will receive the ordered "
+"goods as soon as possible."
+msgstr ""
+
+#: ../templates/emails/customer-preview-submitted.php:18
+#: ../templates/emails/customer-request-texts.php:21
+#: ../templates/emails/preview-approved.php:16
+#: ../templates/emails/send-report.php:16
+#: ../templates/emails/text-submitted.php:16
+msgid "Order:"
+msgstr ""
+
+#: ../templates/emails/customer-preview-submitted.php:19
+#: ../templates/emails/plain/customer-preview-submitted.php:22
+msgid "A preview of your items was uploaded in your personal area"
+msgstr ""
+
+#: ../templates/emails/customer-preview-submitted.php:20
+#: ../templates/emails/plain/customer-preview-submitted.php:24
+msgid "see the preview"
+msgstr ""
+
+#: ../templates/emails/customer-request-texts.php:19
+#: ../templates/emails/plain/customer-request-texts.php:17
+msgid ""
+"Your order to being processed needs your text. Follow the link and submit "
+"your texts."
+msgstr ""
+
+#: ../templates/emails/customer-request-texts.php:23
+#: ../templates/emails/plain/customer-request-texts.php:24
+msgid "Forms Page"
+msgstr ""
+
+#: ../templates/emails/plain/customer-preview-approved.php:17
+#: ../templates/emails/plain/customer-preview-submitted.php:19
+#: ../templates/emails/plain/customer-request-texts.php:21
+#: ../templates/emails/plain/preview-approved.php:17
+#: ../templates/emails/plain/send-report.php:17
+#: ../templates/emails/plain/text-submitted.php:18
+#, php-format
+msgid "Order number: %s"
+msgstr ""
+
+#: ../templates/emails/plain/customer-preview-approved.php:18
+#: ../templates/emails/plain/customer-preview-submitted.php:20
+#: ../templates/emails/plain/customer-request-texts.php:22
+#: ../templates/emails/plain/preview-approved.php:18
+#: ../templates/emails/plain/send-report.php:18
+#: ../templates/emails/plain/text-submitted.php:19
+#, php-format
+msgid "Order date: %s"
+msgstr ""
+
+#: ../templates/emails/plain/preview-approved.php:22
+#: ../templates/emails/plain/send-report.php:22
+#: ../templates/emails/send-report.php:18
+msgid ""
+"One or more errors was reported for this order. Please check and fix it."
+msgstr ""
+
+#: ../templates/emails/plain/preview-approved.php:24
+#: ../templates/emails/plain/send-report.php:24
+#: ../templates/emails/plain/text-submitted.php:25
+#: ../templates/emails/preview-approved.php:20
+#: ../templates/emails/send-report.php:20
+#: ../templates/emails/text-submitted.php:20
+msgid "Edit the order."
+msgstr ""
+
+#: ../templates/emails/plain/text-submitted.php:23
+#: ../templates/emails/text-submitted.php:18
+msgid "Texts are been submitted for this order."
+msgstr ""
+
+#: ../templates/emails/preview-approved.php:18
+msgid ""
+"The preview for this order was been approved. Check it for put order under "
+"processing."
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:112
+msgid "Texts submission"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:147
+msgid "Texts"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:164
+msgid "You need to be logged in in your account area to see this page"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:201
+#: ../woocommerce-add-form-to-product.php:926
+msgid "Awaiting submission"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:204
+#: ../woocommerce-add-form-to-product.php:929
+msgid "Awaiting preview"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:207
+#: ../woocommerce-add-form-to-product.php:932
+msgid "Awaiting approval"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:210
+#: ../woocommerce-add-form-to-product.php:243
+#: ../woocommerce-add-form-to-product.php:935
+msgid "Preview approved"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:213
+msgid "Order"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:214
+msgid "Status"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:215
+#: ../woocommerce-add-form-to-product.php:939
+msgid "Text status"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:217
+msgid ""
+"For send texts the order must be in processing status. Wait for changing "
+"order status."
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:243
+msgid "Preview"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:249
+msgid "Approve"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:254
+msgid ""
+"The approval will be final and not reversible. By approving this preview you "
+"start the order process, will no longer be possible corrections or changes. "
+"I confirm I have checked the texts and I accept them as proposed in the "
+"preview."
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:261
+msgid "Error reported"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:286
+#: ../woocommerce-add-form-to-product.php:652
+#: ../woocommerce-add-form-to-product.php:1003
+#, php-format
+msgid "added %s ago"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:293
+msgid "Any error was reported for this order."
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:295
+#: ../woocommerce-add-form-to-product.php:1009
+msgid "There are no error reported for this order yet."
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:304
+msgid "Write here your error note"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:306
+msgid "Report an error"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:325
+msgid "Thank you for your approval, your order will be processed soon."
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:329
+msgid "Error on post approval, please try again after few minutes"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:334
+msgid "Check the approval confirmation"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:362
+msgid "You must insert a note"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:474
+msgid "Texts Forms"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:476
+msgid "Submitted Texts"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:484
+#: ../woocommerce-add-form-to-product.php:523
+msgid "Send texts"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:511
+#: ../woocommerce-add-form-to-product.php:526
+msgid ""
+"You must complete all forms requested. After that you'll can send texts and "
+"awaiting a preview"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:532
+msgid ""
+"Thank you for submitting your texts. Your order will be processed as soon as "
+"possible"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:709
+msgid "Form"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:727
+msgid "Enable Form"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:728
+msgid "Enable or disable form option for this item."
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:731
+msgid "Add a form"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:733
+msgid "select a form"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:748
+msgid "add"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:751
+msgid "Selected forms"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:755
+msgid "form name"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:760
+msgid "no form selected"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:777
+msgid ""
+"For add a form to this product you need to download and activate Contact "
+"Form 7 plugin"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:902
+msgid "Requested Text"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:920
+msgid "No text required for this order"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:946
+msgid "Show texts"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:947
+msgid "Collapse texts"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:989
+msgid "Show errors"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:990
+msgid "Collapse errors"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:1015
+msgid "Send Preview"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:1017
+msgid "Send Again"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:1022
+msgid "Preview uploaded"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:1027
+msgid "Upload the Preview document"
+msgstr ""
+
+#: ../woocommerce-add-form-to-product.php:1038
+msgid "Preview uploaded and approved"
+msgstr ""

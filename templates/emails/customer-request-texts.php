@@ -2,9 +2,9 @@
 /**
  * Customer request texts email
  *
- * @author		Isikom
- * @package 	WooCommerce/Templates/Emails
- * @version     1.6.4
+ * @author Isikom
+ * @package WooCommerce/Templates/Emails/HTML
+ * @version 2.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
