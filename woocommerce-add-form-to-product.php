@@ -32,7 +32,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 			 * to add the necessary actions for the plugin
 			 */
 			public function init() {
-				require_once WPCF7_PLUGIN_DIR . '/includes/controller.php';
+				if (defined(WPCF7_PLUGIN_DIR)){
+					require_once WPCF7_PLUGIN_DIR . '/includes/controller.php';
+				}
 				if (is_admin()){
 			        // backend stuff
 			        add_action('woocommerce_product_write_panel_tabs', array($this, 'product_write_panel_tab'));
