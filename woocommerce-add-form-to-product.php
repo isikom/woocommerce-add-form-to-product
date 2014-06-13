@@ -268,10 +268,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 							'type' 		=> 'order_report'
 						);
 						//remove_filter('comments_clauses', 'woocommerce_exclude_order_comments');
-						remove_filter('comments_clauses', array( 'WC_Comments', 'exclude_order_comments' ) );
+						remove_filter('comments_clauses', array( 'WC_Comments' ,'exclude_order_comments'), 10, 1 );
 						$notes = get_comments( $args );
 						//add_filter('comments_clauses', 'woocommerce_exclude_order_comments');
-						add_filter('comments_clauses', array( 'WC_Comments', 'exclude_order_comments' ) );
+						add_filter('comments_clauses', array( 'WC_Comments', 'exclude_order_comments' ), 10, 1 );
 						?>
 						<ul class="order_notes" id="reports-container">
 						<?php
