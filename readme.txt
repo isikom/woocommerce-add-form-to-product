@@ -3,7 +3,7 @@ Contributors: isikom, zauker
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, woocommerce, forms, addictional, typography 
 Requires at least: 3.5
 Tested up to: 3.9.1
-Stable tag: 0.5.4
+Stable tag: 0.5.5
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,6 +12,8 @@ A powerful WooCommerce plugin, ask texts for your items before send them
 == Description ==
 
 Add a custom text form to an item. This is required when item in your shop need to get a custom text, for example wedding invitations, plates, serigraphs for pens and more
+
+this plugin need Contact Form 7
 
 = GET INVOLVED =
 
@@ -45,6 +47,10 @@ The manual installation method involves downloading our plugin and uploading it 
 == Screenshots ==
 
 == Changelog ==
+
+= 0.5.5 - 13/06/2014 =
+* Fix fatal error after install if Contact Form 7 missed
+* Fix showing error on Front End  
 
 = 0.5.4 - 11/06/2014 =
 * Fix send request email
